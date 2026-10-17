@@ -73,27 +73,29 @@ SITES = [
         "tier": 1,
         "source_type": "retailer",
         "categories": ["mobile", "laptop", "accessories", "tv"],
-        "enabled": False,
-        "disabled_reason": (
-            "0/3 successful extraction results in the latest integration test. "
-            "Investigate extraction support before enabling."
-        ),
+        "enabled": True,
+        "disabled_reason": None,
+        # 
+        # (
+        #     "0/3 successful extraction results in the latest integration test. "
+        #     "Investigate extraction support before enabling."
+        # ),
         "last_tested": "2026-10-17",
     },
-    {
-        "key": "itti",
-        "name": "ITTI",
-        "url": "https://itti.com.np/",
-        "tier": 1,
-        "source_type": "retailer",
-        "categories": ["laptop", "accessories"],
-        "enabled": False,
-        "disabled_reason": (
-            "No reliable results in the latest integration test; "
-            "requests returned empty results or timed out."
-        ),
-        "last_tested": "2026-10-17",
-    },
+    # {
+    #     "key": "itti",
+    #     "name": "ITTI",
+    #     "url": "https://itti.com.np/",
+    #     "tier": 1,
+    #     "source_type": "retailer",
+    #     "categories": ["laptop", "accessories"],
+    #     "enabled": False,
+    #     "disabled_reason": (
+    #         "No reliable results in the latest integration test; "
+    #         "requests returned empty results or timed out."
+    #     ),
+    #     "last_tested": "2026-10-17",
+    # },
     # {
     #     "key": "daraz",
     #     "name": "Daraz Nepal",
@@ -113,28 +115,28 @@ SITES = [
     #     "disabled_reason": None,
     #     "last_tested": "2026-10-17",
     # },
-    {
-        "key": "sastodeal",
-        "name": "Sastodeal",
-        "url": "https://www.sastodeal.com/",
-        "tier": 2,
-        "source_type": "marketplace",
-        "categories": [
-            "mobile",
-            "laptop",
-            "tv",
-            "appliance",
-            "accessories",
-            "fashion",
-            "general",
-        ],
-        "enabled": False,
-        "disabled_reason": (
-            "All tested requests timed out at approximately 60 seconds. "
-            "Investigate connectivity and extraction support before enabling."
-        ),
-        "last_tested": "2026-10-17",
-    },
+    # {
+    #     "key": "sastodeal",
+    #     "name": "Sastodeal",
+    #     "url": "https://www.sastodeal.com/",
+    #     "tier": 2,
+    #     "source_type": "marketplace",
+    #     "categories": [
+    #         "mobile",
+    #         "laptop",
+    #         "tv",
+    #         "appliance",
+    #         "accessories",
+    #         "fashion",
+    #         "general",
+    #     ],
+    #     "enabled": False,
+    #     "disabled_reason": (
+    #         "All tested requests timed out at approximately 60 seconds. "
+    #         "Investigate connectivity and extraction support before enabling."
+    #     ),
+    #     "last_tested": "2026-10-17",
+    # },
 ]
 
 
