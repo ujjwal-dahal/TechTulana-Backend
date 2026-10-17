@@ -24,12 +24,25 @@ SITES = [
         "source_type": "editorial",
         "categories": ["mobile", "laptop", "accessories"],
         "enabled": True,
-        "disabled_reason": (
-            "Editorial/review site, not a retailer. "
-            "Keep separate from retailer price comparison."
-        ),
+        "disabled_reason": None,
         "last_tested": "2026-10-17",
     },
+    {
+            "key": "hukut",
+            "name": "Hukut",
+            "url": "https://www.hukut.com/",
+            "tier": 1,
+            "source_type": "retailer",
+            "categories": ["mobile", "laptop", "accessories", "tv"],
+            "enabled": True,
+            "disabled_reason": None,
+            # 
+            # (
+            #     "0/3 successful extraction results in the latest integration test. "
+            #     "Investigate extraction support before enabling."
+            # ),
+            "last_tested": "2026-10-17",
+        },
     {
         "key": "evostore",
         "name": "EvoStore",
@@ -37,11 +50,8 @@ SITES = [
         "tier": 1,
         "source_type": "retailer",
         "categories": ["mobile", "laptop", "accessories"],
-        "enabled": False,
-        "disabled_reason": (
-            "0/3 successful extraction results in the latest integration test. "
-            "Investigate extraction support before enabling."
-        ),
+        "enabled": True,
+        "disabled_reason": None,
         "last_tested": "2026-10-17",
     },
     # {
@@ -66,22 +76,6 @@ SITES = [
     #     "disabled_reason": None,
     #     "last_tested": "2026-10-17",
     # },
-    {
-        "key": "hukut",
-        "name": "Hukut",
-        "url": "https://www.hukut.com/",
-        "tier": 1,
-        "source_type": "retailer",
-        "categories": ["mobile", "laptop", "accessories", "tv"],
-        "enabled": True,
-        "disabled_reason": None,
-        # 
-        # (
-        #     "0/3 successful extraction results in the latest integration test. "
-        #     "Investigate extraction support before enabling."
-        # ),
-        "last_tested": "2026-10-17",
-    },
     # {
     #     "key": "itti",
     #     "name": "ITTI",
@@ -96,25 +90,25 @@ SITES = [
     #     ),
     #     "last_tested": "2026-10-17",
     # },
-    # {
-    #     "key": "daraz",
-    #     "name": "Daraz Nepal",
-    #     "url": "https://www.daraz.com.np/",
-    #     "tier": 2,
-    #     "source_type": "marketplace",
-    #     "categories": [
-    #         "mobile",
-    #         "laptop",
-    #         "tv",
-    #         "appliance",
-    #         "accessories",
-    #         "fashion",
-    #         "general",
-    #     ],
-    #     "enabled": True,
-    #     "disabled_reason": None,
-    #     "last_tested": "2026-10-17",
-    # },
+    {
+        "key": "daraz",
+        "name": "Daraz Nepal",
+        "url": "https://www.daraz.com.np/",
+        "tier": 2,
+        "source_type": "marketplace",
+        "categories": [
+            "mobile",
+            "laptop",
+            "tv",
+            "appliance",
+            "accessories",
+            "fashion",
+            "general",
+        ],
+        "enabled": True,
+        "disabled_reason": None,
+        "last_tested": "2026-10-17",
+    },
     # {
     #     "key": "sastodeal",
     #     "name": "Sastodeal",
