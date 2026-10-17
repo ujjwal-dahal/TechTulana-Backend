@@ -1,4 +1,3 @@
-
 from copy import deepcopy
 from typing import Any
 
@@ -23,8 +22,9 @@ SITES = [
         "tier": 1,
         "source_type": "editorial",
         "categories": ["mobile", "laptop", "accessories"],
-        "enabled": True,
-        "disabled_reason": None,
+        # Editorial/review site ho, retailer haina. Price comparison ma halnu hudaina.
+        "enabled": False,
+        "disabled_reason": "Editorial/review site, not a retailer.",
         "last_tested": "2026-10-17",
     },
     {
@@ -34,8 +34,9 @@ SITES = [
             "tier": 1,
             "source_type": "retailer",
             "categories": ["mobile", "laptop", "accessories", "tv"],
-            "enabled": True,
-            "disabled_reason": None,
+            # Live test ma 0/3 ra latest run ma pani empty (29s barbaad), tesaile disabled.
+            "enabled": False,
+            "disabled_reason": "0/3 successful extraction results in the latest integration test.",
             # 
             # (
             #     "0/3 successful extraction results in the latest integration test. "
@@ -50,32 +51,33 @@ SITES = [
         "tier": 1,
         "source_type": "retailer",
         "categories": ["mobile", "laptop", "accessories"],
+        # Live test ma 0/3 ra latest run ma pani empty (49s barbaad), tesaile disabled.
+        "enabled": False,
+        "disabled_reason": "0/3 successful extraction results in the latest integration test.",
+        "last_tested": "2026-10-17",
+    },
+    {
+        "key": "oliz",
+        "name": "Oliz Store",
+        "url": "https://www.olizstore.com/",
+        "tier": 1,
+        "source_type": "retailer",
+        "categories": ["mobile", "laptop", "accessories"],
         "enabled": True,
         "disabled_reason": None,
         "last_tested": "2026-10-17",
     },
-    # {
-    #     "key": "oliz",
-    #     "name": "Oliz Store",
-    #     "url": "https://www.olizstore.com/",
-    #     "tier": 1,
-    #     "source_type": "retailer",
-    #     "categories": ["mobile", "laptop", "accessories"],
-    #     "enabled": True,
-    #     "disabled_reason": None,
-    #     "last_tested": "2026-10-17",
-    # },
-    # {
-    #     "key": "bigbyte",
-    #     "name": "Bigbyte IT World",
-    #     "url": "https://bigbyte.com.np/",
-    #     "tier": 1,
-    #     "source_type": "retailer",
-    #     "categories": ["laptop", "accessories", "tv"],
-    #     "enabled": True,
-    #     "disabled_reason": None,
-    #     "last_tested": "2026-10-17",
-    # },
+    {
+        "key": "bigbyte",
+        "name": "Bigbyte IT World",
+        "url": "https://bigbyte.com.np/",
+        "tier": 1,
+        "source_type": "retailer",
+        "categories": ["laptop", "accessories", "tv"],
+        "enabled": True,
+        "disabled_reason": None,
+        "last_tested": "2026-10-17",
+    },
     # {
     #     "key": "itti",
     #     "name": "ITTI",
@@ -96,17 +98,17 @@ SITES = [
         "url": "https://www.daraz.com.np/",
         "tier": 2,
         "source_type": "marketplace",
+        # Live test ma verify gareko category matra rakhne. "general" hatayo,
+        # natra get_sites_by_category le Daraz lai sabai category ma pathauchha.
         "categories": [
             "mobile",
             "laptop",
             "tv",
-            "appliance",
-            "accessories",
-            "fashion",
-            "general",
         ],
-        "enabled": True,
-        "disabled_reason": None,
+        # Render free instance ma ReadTimeout (60s) aayo. Instance upgrade ya
+        # streaming (Step 11) pachi feri enabled=True garne.
+        "enabled": False,
+        "disabled_reason": "ReadTimeout (60s) on the free extractor instance.",
         "last_tested": "2026-10-17",
     },
     # {
