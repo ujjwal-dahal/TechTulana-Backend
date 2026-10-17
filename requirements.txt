@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+psycopg[binary]
+langchain
+langgraph
+langchain-nvidia-ai-endpoints
+httpx
+python-dotenv
+pydantic-settings
+beautifulsoup4
+playwright
+lxml
+selectolax
