@@ -1,4 +1,3 @@
-
 import asyncio
 import logging
 import time
@@ -21,6 +20,9 @@ from app.services.product_validation import validate_product_match
 # Logger setup
 setup_logging()
 logger = logging.getLogger(__name__)
+
+# Bacheko time yo bhanda kam bhayo bhane site skip garne (seconds)
+MIN_SITE_TIME = 15.0
 
 
 # Website URL bata domain name extract garne
@@ -50,11 +52,52 @@ def error_result(
     )
 
 
+def _base_url() -> str:
+    return (settings.EXTRACTOR_API_URL or "").rstrip("/")
+
+
+def _auth_headers() -> dict[str, str]:
+    """API key header (only if configured)."""
+    if settings.EXTRACTOR_API_KEY:
+        return {"X-API-Key": settings.EXTRACTOR_API_KEY}
+    return {}
+
+
+# Render free instance sutdai huna sakcha, tesaile pahile uthaune
+async def wake_extractor() -> None:
+    """Ping /health once so a sleeping extractor starts before real requests."""
+    base = _base_url()
+    if not base:
+        return
+
+    started_at = time.perf_counter()
+
+    try:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(40.0, connect=10.0)
+        ) as client:
+            response = await client.get(f"{base}/health", headers=_auth_headers())
+
+        logger.info(
+            "Extractor wake-up status=%s elapsed=%.2fs",
+            response.status_code,
+            time.perf_counter() - started_at,
+        )
+    except httpx.HTTPError as exc:
+        # Wake-up fail bhaye pani real request try garne
+        logger.warning(
+            "Extractor wake-up failed error=%s elapsed=%.2fs",
+            type(exc).__name__,
+            time.perf_counter() - started_at,
+        )
+
+
 # Extractor API bata products fetch garne
 async def fetch_website(
     website_url: str,
     product_name: str,
     max_results: int = 5,
+    read_timeout: float | None = None,
 ) -> EachWebsiteResult:
     """Fetch and validate products from one website."""
 
@@ -67,19 +110,26 @@ async def fetch_website(
             error_message="Invalid website URL",
         )
 
-    if not settings.EXTRACTOR_API_URL:
+    base_url = _base_url()
+
+    if not base_url:
         logger.error("EXTRACTOR_API_URL is not configured")
         return error_result(
             website=website_name,
             error_message="EXTRACTOR_API_URL is not configured",
         )
 
-    endpoint = f"{settings.EXTRACTOR_API_URL.rstrip('/')}/extract"
+    endpoint = f"{base_url}/extract"
+
+    # Bacheko budget bhanda badhi parkhane haina
+    read_seconds = (
+        min(PER_SITE_TIMEOUT, read_timeout) if read_timeout else PER_SITE_TIMEOUT
+    )
 
     timeout = httpx.Timeout(
-        60.0,
+        read_seconds,
         connect=10.0,
-        read=60.0,
+        read=read_seconds,
         write=10.0,
         pool=10.0,
     )
@@ -93,6 +143,7 @@ async def fetch_website(
                     "product_name": product_name,
                     "max_results": max_results,
                 },
+                headers=_auth_headers(),
             )
 
         elapsed = time.perf_counter() - started_at
@@ -115,12 +166,23 @@ async def fetch_website(
                 body,
             )
 
+            if response.status_code in (401, 403):
+                return error_result(
+                    website=website_name,
+                    error_message="Extractor rejected the API key",
+                )
+
+            if response.status_code == 503:
+                return error_result(
+                    website=website_name,
+                    error_message="Extractor is busy",
+                    retryable=True,
+                )
+
+            # Body user-facing message ma nahalne (log ma matra)
             return error_result(
                 website=website_name,
-                error_message=(
-                    f"Extractor returned HTTP {response.status_code}: "
-                    f"{body[:300]}"
-                ),
+                error_message=f"Extractor returned HTTP {response.status_code}",
                 retryable=response.status_code == 429
                 or response.status_code >= 500,
             )
@@ -218,32 +280,41 @@ async def fetch_website(
             products=products,
         )
 
-    except httpx.TimeoutException as exc:
-        elapsed = time.perf_counter() - started_at
-
+    # Connect timeout: extractor samma pugna sakena (URL galat / down)
+    except httpx.ConnectTimeout as exc:
         logger.error(
-            "Extractor timeout site=%s elapsed=%.2fs error=%s",
+            "Extractor connect timeout site=%s elapsed=%.2fs type=%s",
             website_name,
-            elapsed,
-            str(exc),
+            time.perf_counter() - started_at,
+            type(exc).__name__,
         )
-
         return error_result(
             website=website_name,
-            error_message="Extractor request timed out",
+            error_message="Could not reach extractor (connect timeout)",
+            retryable=True,
+        )
+
+    # Read/write/pool timeout: pugyo tara response aayena (slow / hang)
+    except httpx.TimeoutException as exc:
+        logger.error(
+            "Extractor timeout site=%s elapsed=%.2fs type=%s",
+            website_name,
+            time.perf_counter() - started_at,
+            type(exc).__name__,
+        )
+        return error_result(
+            website=website_name,
+            error_message="Extractor did not respond in time",
             retryable=True,
         )
 
     except httpx.ConnectError as exc:
-        elapsed = time.perf_counter() - started_at
-
         logger.error(
             "Extractor connection failure site=%s elapsed=%.2fs error=%s",
             website_name,
-            elapsed,
+            time.perf_counter() - started_at,
             str(exc),
         )
-
         return error_result(
             website=website_name,
             error_message="Could not connect to extractor API",
@@ -252,10 +323,10 @@ async def fetch_website(
 
     except httpx.RequestError as exc:
         logger.exception(
-            "Extractor request error site=%s",
+            "Extractor request error site=%s type=%s",
             website_name,
+            type(exc).__name__,
         )
-
         return error_result(
             website=website_name,
             error_message=f"Extractor request failed: {type(exc).__name__}",
@@ -267,32 +338,61 @@ async def fetch_website(
             "Unexpected extractor error site=%s",
             website_name,
         )
-
         return error_result(
             website=website_name,
             error_message=f"Unexpected error: {type(exc).__name__}",
         )
 
 
-# Multiple websites concurrently fetch garne
+# Multiple websites fetch garne (default: ek-ek garera)
 async def fetch_many(
     urls: list[str],
     product_name: str,
     max_results: int = 5,
+    deadline: float | None = None,
 ) -> list[EachWebsiteResult]:
-    """Fetch products from multiple websites concurrently."""
+    """
+    Fetch products from multiple websites.
 
-    semaphore = asyncio.Semaphore(3)
+    deadline: time.monotonic() based timestamp. Time sakkiyo bhane bacheko
+    site skip hunchha ra aile samma ko result return hunchha.
+    """
+
+    semaphore = asyncio.Semaphore(settings.MAX_CONCURRENT_EXTRACTS)
+
+    await wake_extractor()
 
     async def limited_fetch(url: str) -> EachWebsiteResult:
         async with semaphore:
             start_time = time.perf_counter()
+
+            read_timeout = None
+
+            # Semaphore pachi check garne (aghi ko site le time khayo hola)
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+
+                if remaining < MIN_SITE_TIME:
+                    logger.warning(
+                        "Site skipped (time budget) url=%s remaining=%.1fs",
+                        url,
+                        remaining,
+                    )
+                    skipped = error_result(
+                        website=get_website_name(url) or "unknown",
+                        error_message="Skipped: time budget exhausted",
+                    )
+                    skipped.elapsed_seconds = 0.0
+                    return skipped
+
+                read_timeout = remaining
 
             try:
                 result = await fetch_website(
                     website_url=url,
                     product_name=product_name,
                     max_results=max_results,
+                    read_timeout=read_timeout,
                 )
 
             except Exception:
@@ -318,9 +418,6 @@ async def fetch_many(
 
             return result
 
-    tasks = [
-        limited_fetch(url)
-        for url in urls
-    ]
+    tasks = [limited_fetch(url) for url in urls]
 
     return await asyncio.gather(*tasks)
